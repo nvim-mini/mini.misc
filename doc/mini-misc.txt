@@ -1,10 +1,9 @@
 *mini.misc* Miscellaneous functions
-*MiniMisc*
 
 MIT License Copyright (c) 2021 Evgeni Chasnovski
 
-==============================================================================
-
+------------------------------------------------------------------------------
+                                                                      *MiniMisc*
 Features the following functions:
 - |MiniMisc.bench_time()| to benchmark function execution time.
   Useful in combination with `stat_summary()`.
@@ -60,9 +59,7 @@ Usage ~
 ------------------------------------------------------------------------------
                                                                *MiniMisc.config*
                                `MiniMisc.config`
-Module config
-
-Default values:
+Defaults ~
 >lua
   MiniMisc.config = {
     -- Array of fields to make global (to be used as independent variables)
@@ -129,7 +126,7 @@ What it does:
 - Creates autocommand which on every |BufEnter| event with |MiniMisc.find_root()|
   finds root directory for current buffer file and sets |current-directory|
   to it (using |chdir()|).
-- Resets |autochdir| to `false`.
+- Resets |'autochdir'| to `false`.
 
 Parameters ~
 {names} `(table|function|nil)` Forwarded to |MiniMisc.find_root()|.
@@ -149,7 +146,7 @@ Based on a buffer name (full path to file opened in a buffer) find a root
 directory. If buffer is not associated with file, returns `nil`.
 
 Root directory is a directory containing at least one of pre-defined files.
-It is searched using |vim.fn.find()| with `upward = true` starting from
+It is searched using |vim.fs.find()| with `upward = true` starting from
 directory of current buffer file until first occurrence of root file(s).
 
 Notes:
@@ -202,7 +199,7 @@ Note: it relies on file mark data stored in 'shadafile' (see |shada-f|).
 Be sure to enable it.
 
 Parameters ~
-{opts} `(table|nil)` Options for |MiniMisc.restore_cursor|. Possible fields:
+{opts} `(table|nil)` Options. Possible fields:
   - <center> - (boolean) Center the window after we restored the cursor.
     Default: `true`.
   - <ignore_filetype> - Array with file types to be ignored (see 'filetype').
@@ -218,7 +215,7 @@ Usage ~
 Compute summary statistics of numerical array
 
 This might be useful to compute summary of time benchmarking with
-|MiniMisc.bench_time|.
+|MiniMisc.bench_time()|.
 
 Parameters ~
 {t} `(table)` Array (table suitable for `ipairs`) of numbers.

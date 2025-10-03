@@ -1,10 +1,7 @@
 --- *mini.misc* Miscellaneous functions
---- *MiniMisc*
 ---
 --- MIT License Copyright (c) 2021 Evgeni Chasnovski
----
---- ==============================================================================
----
+
 --- Features the following functions:
 --- - |MiniMisc.bench_time()| to benchmark function execution time.
 ---   Useful in combination with `stat_summary()`.
@@ -42,6 +39,7 @@
 ---
 --- This module doesn't have runtime options, so using `vim.b.minimisc_config`
 --- will have no effect here.
+---@tag MiniMisc
 
 -- Module definition ==========================================================
 local MiniMisc = {}
@@ -67,9 +65,7 @@ MiniMisc.setup = function(config)
   H.apply_config(config)
 end
 
---- Module config
----
---- Default values:
+--- Defaults ~
 ---@eval return MiniDoc.afterlines_to_code(MiniDoc.current.eval_section)
 MiniMisc.config = {
   -- Array of fields to make global (to be used as independent variables)
@@ -182,7 +178,7 @@ end
 --- - Creates autocommand which on every |BufEnter| event with |MiniMisc.find_root()|
 ---   finds root directory for current buffer file and sets |current-directory|
 ---   to it (using |chdir()|).
---- - Resets |autochdir| to `false`.
+--- - Resets |'autochdir'| to `false`.
 ---
 ---@param names table|function|nil Forwarded to |MiniMisc.find_root()|.
 ---@param fallback function|nil Forwarded to |MiniMisc.find_root()|.
@@ -221,7 +217,7 @@ end
 --- directory. If buffer is not associated with file, returns `nil`.
 ---
 --- Root directory is a directory containing at least one of pre-defined files.
---- It is searched using |vim.fn.find()| with `upward = true` starting from
+--- It is searched using |vim.fs.find()| with `upward = true` starting from
 --- directory of current buffer file until first occurrence of root file(s).
 ---
 --- Notes:
@@ -381,7 +377,7 @@ end
 --- Note: it relies on file mark data stored in 'shadafile' (see |shada-f|).
 --- Be sure to enable it.
 ---
----@param opts table|nil Options for |MiniMisc.restore_cursor|. Possible fields:
+---@param opts table|nil Options. Possible fields:
 ---   - <center> - (boolean) Center the window after we restored the cursor.
 ---     Default: `true`.
 ---   - <ignore_filetype> - Array with file types to be ignored (see 'filetype').
@@ -441,7 +437,7 @@ end
 --- Compute summary statistics of numerical array
 ---
 --- This might be useful to compute summary of time benchmarking with
---- |MiniMisc.bench_time|.
+--- |MiniMisc.bench_time()|.
 ---
 ---@param t table Array (table suitable for `ipairs`) of numbers.
 ---
