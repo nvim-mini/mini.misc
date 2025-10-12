@@ -9,6 +9,8 @@
 --- - |MiniMisc.put()| and |MiniMisc.put_text()| to pretty print its arguments
 ---   into command line and current buffer respectively.
 ---
+--- - |MiniMisc.resize_window()| to resize current window to its editable width.
+---
 --- - |MiniMisc.setup_auto_root()| to set up automated change of current directory.
 ---
 --- - |MiniMisc.setup_termbg_sync()| to set up terminal background synchronization
