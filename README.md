@@ -29,6 +29,7 @@ https://user-images.githubusercontent.com/24854248/173044891-69b0ccfd-3fe8-4639-
 ## Features
 
 - `bench_time()` executes function several times and timing how long it took.
+- `log_add()` / `log_show()` and other helper functions to work with a special in-memory log array. Useful when debugging Lua code (instead of `print()`).
 - `put()` and `put_text()` print Lua objects in command line and current buffer respectively.
 - `resize_window()` resizes current window to its editable width.
 - `setup_auto_root()` sets up automated change of current directory.

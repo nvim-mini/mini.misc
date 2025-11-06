@@ -8,6 +8,9 @@ Features the following functions:
 - |MiniMisc.bench_time()| to benchmark function execution time.
   Useful in combination with `stat_summary()`.
 
+- |MiniMisc.log_add()|, |MiniMisc.log_show()| and other helper functions to work
+  with a special in-memory log array. Useful when debugging Lua code.
+
 - |MiniMisc.put()| and |MiniMisc.put_text()| to pretty print its arguments
   into command line and current buffer respectively.
 
@@ -90,6 +93,73 @@ Compute width of gutter (info column on the left of the window)
 Parameters ~
 {win_id} `(number|nil)` Window identifier (see |win_getid()|) for which gutter
   width is computed. Default: 0 for current.
+
+------------------------------------------------------------------------------
+                                                            *MiniMisc.log_add()*
+                  `MiniMisc.log_add`({desc}, {state}, {opts})
+Add an entry to the in-memory log array
+
+Useful when trying to debug a Lua code (like Neovim config or plugin).
+Use this instead of ad-hoc `print()` statements.
+
+Each entry is a table with the following fields:
+- <desc> `(any)` - entry description. Usually a string describing a place
+  in the code.
+- <state> `(any)` - data about current state. Usually a table.
+- <timestamp> `(number)` - a timestamp of when the entry was added. A number of
+  milliseconds since the in-memory log was initiated (after |MiniMisc.setup()|
+  or |MiniMisc.log_clear()|). Useful during profiling.
+
+Parameters ~
+{desc} `(any)` Entry description.
+{state} `(any)` Data about current state.
+{opts} `(table|nil)` Options. Possible fields:
+  - <deepcopy> - (boolean) Whether to apply |vim.deepcopy| to the {state}.
+    Usually helpful to record the exact state during code execution and avoid
+    side effects of tables being changed in-place. Default `true`.
+
+Usage ~
+>lua
+  local t = { a = 1 }
+  MiniMisc.log_add('before', { t = t }) -- Will show `t = { a = 1 }` state
+  t.a = t.a + 1
+  MiniMisc.log_add('after', { t = t })  -- Will show `t = { a = 2 }` state
+
+  -- Use `:lua MiniMisc.log_show()` or `:=MiniMisc.log_get()` to see the log
+<
+See also ~
+- |MiniMisc.log_get()| to get log array
+- |MiniMisc.log_show()| to show log array in the dedicated buffer
+- |MiniMisc.log_clear()| to clear the log array
+
+------------------------------------------------------------------------------
+                                                            *MiniMisc.log_get()*
+                              `MiniMisc.log_get`()
+Get log array
+
+Return ~
+`(table[])` Log array. Returned as is, without |vim.deepcopy()|.
+
+See also ~
+- |MiniMisc.log_add()| to add to the log array
+
+------------------------------------------------------------------------------
+                                                           *MiniMisc.log_show()*
+                             `MiniMisc.log_show`()
+Show log array in a scratch buffer
+
+See also ~
+- |MiniMisc.log_add()| to add to the log array
+
+------------------------------------------------------------------------------
+                                                          *MiniMisc.log_clear()*
+                             `MiniMisc.log_clear`()
+Clear log array
+
+This also sets a new starting point for entry timestamps.
+
+See also ~
+- |MiniMisc.log_add()| to add to the log array
 
 ------------------------------------------------------------------------------
                                                                 *MiniMisc.put()*

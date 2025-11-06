@@ -6,6 +6,9 @@
 --- - |MiniMisc.bench_time()| to benchmark function execution time.
 ---   Useful in combination with `stat_summary()`.
 ---
+--- - |MiniMisc.log_add()|, |MiniMisc.log_show()| and other helper functions to work
+---   with a special in-memory log array. Useful when debugging Lua code.
+---
 --- - |MiniMisc.put()| and |MiniMisc.put_text()| to pretty print its arguments
 ---   into command line and current buffer respectively.
 ---
@@ -105,6 +108,85 @@ MiniMisc.get_gutter_width = function(win_id)
   win_id = (win_id == nil or win_id == 0) and vim.api.nvim_get_current_win() or win_id
   return vim.fn.getwininfo(win_id)[1].textoff
 end
+
+--- Add an entry to the in-memory log array
+---
+--- Useful when trying to debug a Lua code (like Neovim config or plugin).
+--- Use this instead of ad-hoc `print()` statements.
+---
+--- Each entry is a table with the following fields:
+--- - <desc> `(any)` - entry description. Usually a string describing a place
+---   in the code.
+--- - <state> `(any)` - data about current state. Usually a table.
+--- - <timestamp> `(number)` - a timestamp of when the entry was added. A number of
+---   milliseconds since the in-memory log was initiated (after |MiniMisc.setup()|
+---   or |MiniMisc.log_clear()|). Useful during profiling.
+---
+---@param desc any Entry description.
+---@param state any Data about current state.
+---@param opts table|nil Options. Possible fields:
+---   - <deepcopy> - (boolean) Whether to apply |vim.deepcopy| to the {state}.
+---     Usually helpful to record the exact state during code execution and avoid
+---     side effects of tables being changed in-place. Default `true`.
+---
+---@usage >lua
+---   local t = { a = 1 }
+---   MiniMisc.log_add('before', { t = t }) -- Will show `t = { a = 1 }` state
+---   t.a = t.a + 1
+---   MiniMisc.log_add('after', { t = t })  -- Will show `t = { a = 2 }` state
+---
+---   -- Use `:lua MiniMisc.log_show()` or `:=MiniMisc.log_get()` to see the log
+--- <
+---@seealso - |MiniMisc.log_get()| to get log array
+--- - |MiniMisc.log_show()| to show log array in the dedicated buffer
+--- - |MiniMisc.log_clear()| to clear the log array
+MiniMisc.log_add = function(desc, state, opts)
+  opts = vim.tbl_extend('force', { deepcopy = true }, opts or {})
+  local entry = {
+    desc = desc,
+    state = opts.deepcopy and vim.deepcopy(state) or state,
+    timestamp = 0.000001 * (vim.loop.hrtime() - H.log_cache.start_htime),
+  }
+  table.insert(H.log_cache.log, entry)
+end
+
+--- Get log array
+---
+---@return table[] Log array. Returned as is, without |vim.deepcopy()|.
+---
+---@seealso - |MiniMisc.log_add()| to add to the log array
+MiniMisc.log_get = function() return H.log_cache.log end
+
+--- Show log array in a scratch buffer
+---
+---@seealso - |MiniMisc.log_add()| to add to the log array
+MiniMisc.log_show = function()
+  local buf_id = H.log_cache.buf_id
+  if buf_id == nil or not vim.api.nvim_buf_is_valid(buf_id) then
+    buf_id = vim.api.nvim_create_buf(true, true)
+    vim.api.nvim_buf_set_name(buf_id, 'minimisc://' .. buf_id .. '/log')
+    H.log_cache.buf_id = buf_id
+  end
+  local lines = vim.split(vim.inspect(H.log_cache.log), '\n')
+  vim.api.nvim_buf_set_lines(buf_id, 0, -1, false, lines)
+
+  local buf_wins = vim.fn.win_findbuf(buf_id)
+  if buf_wins[1] == nil then return vim.api.nvim_win_set_buf(0, buf_id) end
+  vim.api.nvim_set_current_win(buf_wins[1])
+end
+
+--- Clear log array
+---
+--- This also sets a new starting point for entry timestamps.
+---
+---@seealso - |MiniMisc.log_add()| to add to the log array
+MiniMisc.log_clear = function()
+  H.log_cache.log = {}
+  H.log_cache.start_htime = vim.loop.hrtime()
+  H.notify('Cleared log')
+end
+
+H.log_cache = { log = {}, start_htime = vim.loop.hrtime(), buf_id = nil }
 
 --- Print Lua objects in command line
 ---
