@@ -684,7 +684,7 @@ MiniMisc.zoom = function(buf_id, config)
   local compute_config = function()
     -- Use precise dimensions for no Command line interactions (better scroll)
     local max_width, max_height = vim.o.columns, vim.o.lines - vim.o.cmdheight
-    local default_border = (vim.fn.exists('+winborder') == 1 and vim.o.winborder ~= '') and vim.o.winborder or 'none'
+    local default_border = (vim.fn.exists('+winborder') == 0 or vim.o.winborder == '') and 'none' or nil
     --stylua: ignore
     local default_config = {
       relative = 'editor', row = 0, col = 0,
