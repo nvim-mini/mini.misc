@@ -238,7 +238,7 @@ Parameters ~
 
 ------------------------------------------------------------------------------
                                                   *MiniMisc.setup_termbg_sync()*
-                         `MiniMisc.setup_termbg_sync`()
+                      `MiniMisc.setup_termbg_sync`({opts})
 Set up terminal background synchronization
 
 What it does:
@@ -247,8 +247,7 @@ What it does:
 - Creates autocommands for |ColorScheme| and |VimResume| events, which
   change terminal background to have same color as |guibg| of |hl-Normal|.
 - Creates autocommands for |VimLeavePre| and |VimSuspend| events which set
-  terminal background back to the color at the time this function was
-  called first time in current session.
+  terminal background back to its original color.
 - Synchronizes background immediately to allow not depend on loading order.
 
 Primary use case is to remove possible "frame" around current Neovim instance
@@ -256,6 +255,13 @@ which appears if Neovim's |hl-Normal| background color differs from what is
 used by terminal emulator itself.
 
 Works only on Neovim>=0.10.
+
+Parameters ~
+{opts} `(table|nil)` Options. Possible fields:
+  - <explicit_reset> `(boolean)` - whether to reset terminal background by
+    explicitly setting it to the color it had when this function was called.
+    Set to `true` if terminal emulator doesn't support OSC 111 control sequence.
+    Default: `false`.
 
 ------------------------------------------------------------------------------
                                                *MiniMisc.setup_restore_cursor()*

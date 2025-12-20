@@ -370,8 +370,7 @@ H.root_cache = {}
 --- - Creates autocommands for |ColorScheme| and |VimResume| events, which
 ---   change terminal background to have same color as |guibg| of |hl-Normal|.
 --- - Creates autocommands for |VimLeavePre| and |VimSuspend| events which set
----   terminal background back to the color at the time this function was
----   called first time in current session.
+---   terminal background back to its original color.
 --- - Synchronizes background immediately to allow not depend on loading order.
 ---
 --- Primary use case is to remove possible "frame" around current Neovim instance
@@ -379,7 +378,13 @@ H.root_cache = {}
 --- used by terminal emulator itself.
 ---
 --- Works only on Neovim>=0.10.
-MiniMisc.setup_termbg_sync = function()
+---
+---@param opts table|nil Options. Possible fields:
+---   - <explicit_reset> `(boolean)` - whether to reset terminal background by
+---     explicitly setting it to the color it had when this function was called.
+---     Set to `true` if terminal emulator doesn't support OSC 111 control sequence.
+---     Default: `false`.
+MiniMisc.setup_termbg_sync = function(opts)
   -- Handling `'\027]11;?\007'` response was added in Neovim 0.10
   if vim.fn.has('nvim-0.10') == 0 then return H.notify('`setup_termbg_sync()` requires Neovim>=0.10', 'WARN') end
 
@@ -389,6 +394,12 @@ MiniMisc.setup_termbg_sync = function()
     has_stdout_tty = has_stdout_tty or ui.stdout_tty
   end
   if not has_stdout_tty then return end
+
+  opts = vim.tbl_extend('force', { explicit_reset = false }, opts or {})
+
+  -- Choose a method for how terminal emulator background is reset
+  local reset = function() io.stdout:write('\027]111\027\\') end
+  if opts.explicit_reset then reset = function() io.stdout:write('\027]11;' .. H.termbg_init .. '\007') end end
 
   local augroup = vim.api.nvim_create_augroup('MiniMiscTermbgSync', { clear = true })
   local track_au_id, bad_responses, had_proper_response = nil, {}, false
@@ -406,7 +417,6 @@ MiniMisc.setup_termbg_sync = function()
 
     -- Set up reset to the color returned from the very first call
     H.termbg_init = H.termbg_init or termbg
-    local reset = function() io.stdout:write('\027]11;' .. H.termbg_init .. '\007') end
     vim.api.nvim_create_autocmd({ 'VimLeavePre', 'VimSuspend' }, { group = augroup, callback = reset })
 
     -- Set up sync
